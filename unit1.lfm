@@ -1,0 +1,43 @@
+object Form1: TForm1
+  Left = 765
+  Height = 459
+  Top = 162
+  Width = 650
+  Caption = 'Form1'
+  ClientHeight = 459
+  ClientWidth = 650
+  OnCreate = FormCreate
+  LCLVersion = '2.0.6.0'
+  object Button1: TButton
+    Left = 312
+    Height = 25
+    Top = 424
+    Width = 75
+    Caption = 'Start'
+    OnClick = StartClick
+    TabOrder = 0
+  end
+  object Edit1: TEdit
+    Left = 10
+    Height = 27
+    Top = 422
+    Width = 80
+    TabOrder = 1
+    Text = '1'
+  end
+  object Edit2: TEdit
+    Left = 10
+    Height = 27
+    Top = 384
+    Width = 80
+    TabOrder = 2
+    Text = '5778'
+  end
+  object PaintTimer1: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = PaintTimer1Timer
+    left = 616
+    top = 424
+  end
+end
