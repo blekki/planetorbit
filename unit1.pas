@@ -5,8 +5,8 @@ unit Unit1;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,ExtCtrls,Menus,
-  crt;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
+  Menus, ComCtrls, crt;
 
 type
 
@@ -16,15 +16,42 @@ type
     Button1: TButton;
     Edit1: TEdit;
     Edit2: TEdit;
+    GroupBox1: TGroupBox;
+    Image1: TImage;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    PageControl1: TPageControl;
+    RadioButton1: TRadioButton;
+    RadioButton2: TRadioButton;
+    RadioButton3: TRadioButton;
+    RadioGroup1: TRadioGroup;
     Start: TButton;
     PaintTimer1: TTimer;
-    procedure ClearTimer2Timer(Sender: TObject);
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    TrackBar2: TTrackBar;
     procedure Edit1Change(Sender: TObject);
     procedure Edit2Change(Sender: TObject);
+    procedure FormClick(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
+    procedure PaintTimer1StartTimer(Sender: TObject);
+
+    procedure RadioButton1Change(Sender: TObject);
+    procedure RadioButton2Change(Sender: TObject);
+    procedure RadioButton3Change(Sender: TObject);
+
     procedure StartClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure PaintTimer1Timer(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure TrackBar2Change(Sender: TObject);
   private
 
   public
@@ -64,8 +91,7 @@ const
      StarXY : integer = 200;
 
      //T : real = 0.1; // 1 second
-     T : real = 3600;
-     //T : real = 8640;
+     T : real = 3600;   //секунда T := 1;
 
      a : byte = 200;
      b : byte = 200;
@@ -79,10 +105,45 @@ var
   Pl : array[1..3] of planet;
   Star : Stars;
 
+  TimeControl : Byte;
+  Pos : byte;
+
+  TimeTik : byte;
+  speed : byte;
+
 implementation
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 {$R *.lfm}
 { TForm1 }
+
+
+procedure TForm1.TrackBar2Change(Sender: TObject);
+begin
+    Pos := TrackBar2.Position;
+end;
+
+
+function Magni(Num : byte): integer;     //Magnification
+var Sum : integer;
+begin
+     Sum := Num + pos;
+     if Sum < 10 then
+        Sum := 5;
+
+     magni := Sum
+end;
+
+function move(Num : real; St : real): real;
+var Sum : real;
+begin
+     if Num < 0 then
+       Sum := Num - (10 * Pos)
+     else Sum := Num + (10 * Pos);
+
+     Num := Num + St;
+     move := Sum;
+end;
+
 procedure PlanetOrbit(Pl: pplanet);
 var F : extended;
     G: Extended;
@@ -95,16 +156,16 @@ var F : extended;
 
     i : byte;
 
+    moveX, moveY : real;
 begin
      for i := 1 to 24 do begin
 
-     x := Pl^.x * 1e9;
+     x := Pl^.x * 1e9;   //це в метрах
      y := Pl^.y * 1e9;
 
      dx := -x;
      dy := -y;
 
-     //G := 6.67e-11;
      G := 6.67e-11;
 
      r :=( sqrt(sqr(dx)+sqr(dy)) );// * 10000000 ;
@@ -129,14 +190,21 @@ begin
 
         //The Sun
          with Form1.Canvas do begin
-            Ellipse(Star.x - 5, Star.y - 5, Star.x + 5, Star.y + 5);
+           Ellipse(Star.x - Magni(5), Star.y - Magni(5), Star.x + Magni(5), Star.y + Magni(5));
          end;
 
-        x := Pl^.x + Star.x; //Round(r * cos(Grad)) + 200;
-        y := Pl^.y + Star.y; //Round(r * sin(Grad)) + 200;
+        x := Pl^.x;// + Star.x; //Round(r * cos(Grad)) + 200;
+        y := Pl^.y;// + Star.y; //Round(r * sin(Grad)) + 200;
+
+        moveX := x * Pos + Star.x;
+        moveY := y * Pos + Star.y;
+
+        //moveX := Pl^.x * Pos + Star.x;
+        //moveY := Pl^.y * Pos + Star.y;
 
           with Form1.Canvas do begin
-            Ellipse(Round(x-2), Round(y-2), Round(x + 2), Round(y + 2));
+            //Ellipse(Round(x-2), Round(y-2), Round(x + 2), Round(y + 2));
+            Ellipse(Round(moveX-2), Round(moveY-2), Round(moveX + 2), Round(moveY + 2));
           end;
 
           //Pl.Grad := Pl[i].Grad + 0.01;
@@ -144,8 +212,13 @@ begin
           //Pl[i].Grad := 0.01;
 end;
 
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+     TimeTik := 0;
+     speed := 20;
+     pos := 1;
+
     //Pl[1].r := 30;
      Pl[1].Grad := 0.01;
      Pl[1].x := 0;
@@ -157,15 +230,43 @@ begin
      Pl[1].Mass := 0.0000030040482; //в даний момент це маса порівняно з сонцем //* 5.9737e24;
      //Pl[1].Radius := 6371.3; //metr
 
+     Pl[2].Grad := 0.01;
+     Pl[2].x := 0;
+     Pl[2].y := -98;
+     Pl[2].vx := 35000;
+     Pl[2].vy := 0;
+     Pl[2].Mass := 0.000002403;
+
+     Pl[3].Grad := 0.01;
+     Pl[3].x := 0;
+     Pl[3].y := -43;
+     Pl[3].vx := 56000;
+     Pl[3].vy := 0;
+     Pl[3].Mass := 0.000000030040482;
 end;
+
+procedure TForm1.FormClick(Sender: TObject);
+var MyMouse : TMouse;
+begin
+    Form1.Caption := IntToStr(MyMouse.CursorPos.x) + ' x '+ IntToStr(MyMouse.CursorPos.y);
+end;
+
 
 //Timers
 procedure TForm1.PaintTimer1Timer(Sender: TObject);
 var i : byte;
 begin
-     for i := 1 to 1 do begin
-         PlanetOrbit(@Pl[i]);
+     TimeTik := TimeTik + 1;
+
+     if TimeTik = speed then begin
+       for i := 1 to 3 do begin
+           PlanetOrbit(@Pl[i]);
+       end;
      end;
+
+     if TimeTik = speed then
+     TimeTik := 0;
+
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -173,9 +274,33 @@ begin
 
 end;
 
-procedure TForm1.ClearTimer2Timer(Sender: TObject);
+procedure TForm1.PaintTimer1StartTimer(Sender: TObject);
+var i : byte;
 begin
+    for i := 1 to 3 do begin
+         PlanetOrbit(@Pl[i]);
+     end;
 end;
+
+///
+procedure TForm1.RadioButton1Change(Sender: TObject);
+begin
+     speed := 20;
+     TimeTik := 0;
+end;
+
+procedure TForm1.RadioButton2Change(Sender: TObject);
+begin
+     speed := 10;
+     TimeTik := 0;
+end;
+
+procedure TForm1.RadioButton3Change(Sender: TObject);
+begin
+     speed := 4;
+     TimeTik := 0;
+end;
+///
 
 
 //EditChange
@@ -191,6 +316,8 @@ procedure TForm1.Edit2Change(Sender: TObject);
 begin
     Star.Temperature := StrToInt(Edit2.Text);
 end;
+
+
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 //Button
@@ -219,11 +346,29 @@ begin
      Star.Radius := (SunRadius * (sqrt(Star.Light) * sqr(6000))) / (sqrt(SunLight) * sqr(Star.Temperature));
 
 
-
+       //PaintTimer1.Enabled := false;
        PaintTimer1.Enabled := true;
        //Form1.Invalidate;
        //PlanetOrbit;
 end;
+
+
+procedure TForm1.MenuItem3Click(Sender: TObject);
+begin
+    PaintTimer1.Enabled := false;
+end;
+
+procedure TForm1.MenuItem4Click(Sender: TObject);
+begin
+    PaintTimer1.Enabled := true;
+end;
+
+procedure TForm1.MenuItem6Click(Sender: TObject);
+begin
+    close;
+end;
+
+
 
 
 end.
